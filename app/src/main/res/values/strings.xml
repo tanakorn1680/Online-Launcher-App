@@ -81,14 +81,12 @@
     <string name="ahahaha">ahahaha</string>
     <string name="please_do_not_minimize_or_close_app_while_downloading">Please do not minimize or close app while downloading!</string>
     <string name="updating_game">Updating game...</string>
-    <string name="loading_game_resources">Loading game resources...</string>
     <string name="_0">0%</string>
     <string name="none">none</string>
     <string name="_0_mb_0_mb">0 MB / 0 MB</string>
 
     <string name="choose_server">CHOOSE SERVER</string>
     <string name="connect">CONNECT</string>
-    <string name="download_game_files">DOWNLOAD FILES</string>
     <string name="players_online_format">%1$s / %2$s online</string>
     <string name="players_online_unknown">Server offline</string>
     <string name="checking_players">Checking…</string>
@@ -96,4 +94,5 @@
     <string name="players_count_unknown">--/--</string>
     <string name="back">BACK</string>
     <string name="tap_to_choose_server">Tap to change server</string>
+    <string name="text_encoding">Text encoding</string>
 </resources>

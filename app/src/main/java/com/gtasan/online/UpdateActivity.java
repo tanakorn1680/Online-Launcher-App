@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -99,11 +100,9 @@ public class UpdateActivity extends AppCompatActivity {
                 case 2:
                     Log.i("UpdateActivity", "UpdateService.FINISH_UPDATE_GAME");
                     resetProgress(true, 100, 100);
-                    ((MaterialTextView) findViewById(R.id.update_state)).setText("Updating...");
+                    ((MaterialTextView) findViewById(R.id.update_state)).setText("Atualizando...");
                     if (msg.getData().getBoolean(NotificationCompat.CATEGORY_STATUS, false)) {
-                        // Game files are downloaded and verified: just return to MainActivity,
-                        // which re-checks the "game_files_ready" flag in onResume() and will
-                        // now show Connect instead of Download Files.
+                        startActivity(new Intent(UpdateActivity.this, SplashActivity.class));
                         finish();
                     } else {
                         Log.e("UpdateActivity", "Error update game");
@@ -130,7 +129,7 @@ public class UpdateActivity extends AppCompatActivity {
                                 break;
                             case CheckUpdate:
                             case DownloadGame:
-                                ((MaterialTextView) findViewById(R.id.update_state)).setText("Updating the game...");
+                                ((MaterialTextView) findViewById(R.id.update_state)).setText("Atualizando o jogo...");
                                 if (msg.getData().getBoolean("withProgress", false)) {
                                     long total = msg.getData().getLong("total", 0);
                                     long current = msg.getData().getLong("current", 0);
@@ -139,12 +138,12 @@ public class UpdateActivity extends AppCompatActivity {
                                     progressBar.setMax((int) (total / 1000));
                                     progressBar.setProgress((int) (current / 1000));
                                     ((MaterialTextView) findViewById(R.id.progress)).setText((((long) 100) * current) / (total + 1) + "%");
-                                    ((MaterialTextView) findViewById(R.id.filename)).setText("Application package");
-                                    ((MaterialTextView) findViewById(R.id.size)).setText(Utils.convertBytesToString(current) + " / " + Utils.convertBytesToString(total));
+                                    ((MaterialTextView) findViewById(R.id.filename)).setText("");
+                                    ((MaterialTextView) findViewById(R.id.size)).setText("");
                                 }
                                 break;
                             case DownloadGameFiles:
-                                ((MaterialTextView) findViewById(R.id.update_state)).setText("Updating game files...");
+                                ((MaterialTextView) findViewById(R.id.update_state)).setText("Atualizando arquivos do jogo...");
                                 if (msg.getData().getBoolean("withProgress", false)) {
                                     long total = msg.getData().getLong("total", 0);
                                     long current = msg.getData().getLong("current", 0);
@@ -170,10 +169,12 @@ public class UpdateActivity extends AppCompatActivity {
                     Log.e("UpdateActivity", "UpdateActivity -> UpdateService.UPDATE_STATUS_ERROR");
                     try {
                         new AlertDialog.Builder(UpdateActivity.this)
-                                .setTitle("Update:")
-                                .setMessage("Failed to download the update!")
-                                .setPositiveButton("Ok", (dialog, which) -> finish())
-                                .setCancelable(false).show();
+                                .setTitle("Atualização:")
+                                .setMessage("Falha ao baixar a atualização!")
+                                .setPositiveButton("Ok", (dialog, which) -> {
+                                    startActivity(new Intent(UpdateActivity.this, SplashActivity.class));
+                                    finish();
+                                }).setCancelable(false).show();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -196,7 +197,7 @@ public class UpdateActivity extends AppCompatActivity {
         hideSystemUI();
 
         resetProgress(false, 0, 0);
-        ((MaterialTextView) findViewById(R.id.update_state)).setText("Preparing...");
+        ((MaterialTextView) findViewById(R.id.update_state)).setText("Preparando...");
 
         ((MaterialTextView) findViewById(R.id.ahahaha)).setText(Utils.copyright);
 
@@ -229,9 +230,18 @@ public class UpdateActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        // UpdateActivity is now opened from MainActivity (not forced on launch from
-        // SplashActivity), so pressing back should just return there - not quit the app.
-        finish();
+        quitApp();
+    }
+
+    private long quit_time = 0;
+
+    public void quitApp() {
+        if ((System.currentTimeMillis() - quit_time) > 2000) {
+            Toast.makeText(this, "Press again to quit.", Toast.LENGTH_LONG).show();
+            quit_time = System.currentTimeMillis();
+        } else {
+            finish();
+        }
     }
 
     private void hideSystemUI() {

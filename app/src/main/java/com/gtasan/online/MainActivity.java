@@ -72,9 +72,6 @@ public class MainActivity extends AppCompatActivity implements MaxAdListener, Ma
     private android.widget.ProgressBar server1Progress;
     private boolean chooseServerOpen = false;
 
-    private MaterialButton btnConnect;
-    private MaterialButton btnDownloadFiles;
-
     private final Runnable addressChangedRunnable = this::refreshPlayerCount;
     private final Runnable playersRefreshRunnable = new Runnable() {
         @Override
@@ -141,8 +138,7 @@ public class MainActivity extends AppCompatActivity implements MaxAdListener, Ma
         ImageButton btnInstagram = findViewById(R.id.btnInstagram);
         View serverPickerCard = findViewById(R.id.serverPickerCard);
         MaterialButton btnSettings = findViewById(R.id.btnSettings);
-        btnConnect = findViewById(R.id.btnConnect);
-        btnDownloadFiles = findViewById(R.id.btnDownloadFiles);
+        MaterialButton btnConnect = findViewById(R.id.btnConnect);
 
         nicknameField = findViewById(R.id.nicknameField);
         String savedNick = getSharedPreferences("samp_settings", Context.MODE_PRIVATE).getString("nick_name", "");
@@ -179,39 +175,12 @@ public class MainActivity extends AppCompatActivity implements MaxAdListener, Ma
         btnSettings.setOnClickListener(v -> openSettingsPanel());
         btnCloseSettings.setOnClickListener(v -> closeSettingsPanel());
         btnConnect.setOnClickListener(v -> connectToServer1());
-        btnDownloadFiles.setOnClickListener(v -> openDownloadFiles());
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         playersRefreshHandler.post(playersRefreshRunnable);
-        updateGameFilesButtonState();
-    }
-
-    /**
-     * Shows Connect when the game files are already downloaded (per the flag
-     * UpdateService sets once every file/archive checks out), or Download
-     * Files otherwise. Re-checked every time this screen is shown, so coming
-     * back from the download screen flips it over automatically.
-     */
-    private void updateGameFilesButtonState() {
-        boolean filesReady = getSharedPreferences("samp_settings", Context.MODE_PRIVATE)
-                .getBoolean("game_files_ready", false);
-        btnConnect.setVisibility(filesReady ? View.VISIBLE : View.GONE);
-        btnDownloadFiles.setVisibility(filesReady ? View.GONE : View.VISIBLE);
-    }
-
-    private void openDownloadFiles() {
-        if (!Utils.isOnline(this)) {
-            Toast.makeText(this, "No internet connection!", Toast.LENGTH_LONG).show();
-            return;
-        }
-        getSharedPreferences("samp_settings", Context.MODE_PRIVATE).edit()
-                .putString("files_type", "full").apply();
-        Intent intent = new Intent(this, UpdateActivity.class);
-        intent.putExtra("mode", UpdateActivity.UpdateMode.GameUpdate.name());
-        startActivity(intent);
     }
 
     @Override

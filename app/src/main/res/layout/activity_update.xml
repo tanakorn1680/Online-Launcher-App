@@ -1,134 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimary">
+    android:background="@color/backgroundColor">
 
-    <!-- Copyright, top-right corner -->
+    <!-- Fundo unico da tela de download (nao troca de imagem) -->
+    <ImageView
+        android:id="@+id/background_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/tela_down"
+        android:contentDescription="@null" />
+
+    <!-- Copyright, canto superior direito -->
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/ahahaha"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
         android:layout_margin="@dimen/_10sdp"
         android:fontFamily="@font/gotham"
         android:text="@string/ahahaha"
-        android:textColor="@color/text_hint"
+        android:textColor="#B3FFFFFF"
         android:textSize="@dimen/_8ssp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:textStyle="bold" />
 
-    <!-- App wordmark, upper third of the screen -->
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/update_title"
+    <!-- Status + spinner, canto inferior direito -->
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:fontFamily="@font/montserrat_bold"
-        android:letterSpacing="0.08"
-        android:text="@string/app_name"
-        android:textAllCaps="true"
-        android:textColor="@color/orange"
-        android:textSize="@dimen/_22ssp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@id/update_state"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.32"
-        app:layout_constraintVertical_chainStyle="packed" />
-
-    <!-- Current phase: "Checking for updates...", "Downloading game files...", etc -->
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/update_state"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_14sdp"
-        android:fontFamily="@font/gotham"
-        android:text="@string/updating_game"
-        android:textColor="@color/text_primary"
-        android:textSize="@dimen/_12ssp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@id/progress_card"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/update_title" />
-
-    <!-- Progress card: bar, percentage, current file, downloaded/total size -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/progress_card"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/_18sdp"
-        android:layout_marginTop="@dimen/_22sdp"
-        android:layout_marginEnd="@dimen/_18sdp"
-        android:background="@drawable/card_background"
-        android:padding="@dimen/_16sdp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/update_state"
-        app:layout_constraintVertical_bias="0.5">
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/_14sdp"
+        android:background="@drawable/status_pill_bg"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/_10sdp"
+        android:paddingTop="@dimen/_6sdp"
+        android:paddingEnd="@dimen/_12sdp"
+        android:paddingBottom="@dimen/_6sdp">
 
         <ProgressBar
             android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="0dp"
-            android:layout_height="@dimen/_8sdp"
+            android:layout_width="@dimen/_14sdp"
+            android:layout_height="@dimen/_14sdp"
             android:indeterminate="true"
-            android:indeterminateTint="@color/orange"
-            android:max="100"
-            android:progressDrawable="@drawable/update_progress_bar"
-            android:progressTint="@color/orange"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:indeterminateTint="#FFFFFF" />
 
-        <!-- "42%", right-aligned above the bar -->
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/progress"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/_6sdp"
-            android:fontFamily="@font/montserrat_bold"
-            android:textColor="@color/orange"
-            android:textSize="@dimen/_11ssp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toTopOf="@id/progressBar"
-            app:layout_constraintEnd_toEndOf="parent"
-            tools:text="42%" />
-
-        <!-- Current filename, left-aligned below the bar -->
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/filename"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_8sdp"
-            android:ellipsize="middle"
-            android:fontFamily="@font/roboto_medium"
-            android:maxLines="1"
-            android:textColor="@color/text_primary"
-            android:textSize="@dimen/_9ssp"
-            app:layout_constraintEnd_toStartOf="@id/size"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/progressBar"
-            tools:text="gta3.img" />
-
-        <!-- "4.2 MB / 180 MB", right-aligned below the bar -->
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/size"
+            android:id="@+id/update_state"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/_8sdp"
-            android:layout_marginTop="@dimen/_8sdp"
-            android:fontFamily="@font/roboto_medium"
-            android:textColor="@color/text_secondary"
+            android:fontFamily="@font/gotham"
+            android:text="@string/updating_game"
+            android:textColor="#FFFFFF"
             android:textSize="@dimen/_9ssp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/progressBar"
-            tools:text="4.2 MB / 180 MB" />
+            android:textStyle="bold" />
+    </LinearLayout>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- Views mantidas ocultas so pra nao quebrar o UpdateActivity.java, que ainda
+         escreve texto nelas (percentual, nome do arquivo, tamanho) - nao aparecem
+         mais na tela, mas continuam existindo por baixo dos panos. -->
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/filename"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/size"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
+
+</FrameLayout>

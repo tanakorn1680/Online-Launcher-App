@@ -265,35 +265,7 @@
             android:textColor="#FFFFFF"
             android:textSize="@dimen/_11ssp"
             android:textStyle="bold"
-            android:visibility="gone"
             app:elevation="0dp" />
-
-        <!-- Shown instead of btnConnect when the game files haven't been downloaded yet.
-             MainActivity toggles which of the two is visible. -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnDownloadFiles"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:background="@drawable/pill_button_accent"
-            app:backgroundTint="@null"
-            android:fontFamily="@font/montserrat_bold"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:minWidth="@dimen/_150sdp"
-            android:paddingStart="@dimen/_20sdp"
-            android:paddingTop="@dimen/_10sdp"
-            android:paddingEnd="@dimen/_20sdp"
-            android:paddingBottom="@dimen/_10sdp"
-            android:text="@string/download_game_files"
-            android:textColor="#FFFFFF"
-            android:textSize="@dimen/_11ssp"
-            android:textStyle="bold"
-            android:visibility="gone"
-            app:elevation="0dp"
-            app:icon="@drawable/ic_download"
-            app:iconGravity="textStart"
-            app:iconTint="#FFFFFF" />
 
     </LinearLayout>
 
