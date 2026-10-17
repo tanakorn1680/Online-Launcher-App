@@ -1,31 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/layout_loadingscreen"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000"
-    android:orientation="horizontal">
+    android:background="@color/colorPrimary">
 
-    <ImageView
-        android:id="@+id/loading_logo"
-        android:layout_width="@dimen/_120sdp"
-        android:layout_height="@dimen/_120sdp"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <!-- App wordmark, centered -->
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/loading_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/montserrat_bold"
+        android:letterSpacing="0.08"
+        android:text="@string/app_name"
+        android:textAllCaps="true"
+        android:textColor="@color/orange"
+        android:textSize="@dimen/_22ssp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@id/loading_card"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/samp_logo" />
+        app:layout_constraintVertical_bias="0.38"
+        app:layout_constraintVertical_chainStyle="packed" />
 
-    <com.google.android.material.progressindicator.CircularProgressIndicator
-        android:id="@+id/loading_bar"
-        android:layout_width="wrap_content"
+    <!-- Loading progress card -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/loading_card"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:indeterminate="true"
+        android:layout_marginStart="@dimen/_18sdp"
+        android:layout_marginTop="@dimen/_26sdp"
+        android:layout_marginEnd="@dimen/_18sdp"
+        android:background="@drawable/card_background"
+        android:padding="@dimen/_16sdp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/loading_logo" />
+        app:layout_constraintTop_toBottomOf="@id/loading_title"
+        app:layout_constraintVertical_bias="0.5">
 
+        <ProgressBar
+            android:id="@+id/loading_bar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/_8sdp"
+            android:indeterminate="true"
+            android:indeterminateTint="@color/orange"
+            android:max="100"
+            android:progressDrawable="@drawable/update_progress_bar"
+            android:progressTint="@color/orange"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- "Loading game resources...", left-aligned below the bar -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/loading_state"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_8sdp"
+            android:fontFamily="@font/roboto_medium"
+            android:text="@string/loading_game_resources"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/_9ssp"
+            app:layout_constraintEnd_toStartOf="@id/loading_percent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/loading_bar" />
+
+        <!-- "42%", right-aligned below the bar -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/loading_percent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_8sdp"
+            android:layout_marginTop="@dimen/_8sdp"
+            android:fontFamily="@font/montserrat_bold"
+            android:textColor="@color/orange"
+            android:textSize="@dimen/_9ssp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/loading_bar"
+            tools:ignore="SpUsage"
+            tools:text="42%" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

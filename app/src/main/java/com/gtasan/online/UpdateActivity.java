@@ -16,7 +16,6 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -102,7 +101,9 @@ public class UpdateActivity extends AppCompatActivity {
                     resetProgress(true, 100, 100);
                     ((MaterialTextView) findViewById(R.id.update_state)).setText("Updating...");
                     if (msg.getData().getBoolean(NotificationCompat.CATEGORY_STATUS, false)) {
-                        startActivity(new Intent(UpdateActivity.this, SplashActivity.class));
+                        // Game files are downloaded and verified: just return to MainActivity,
+                        // which re-checks the "game_files_ready" flag in onResume() and will
+                        // now show Connect instead of Download Files.
                         finish();
                     } else {
                         Log.e("UpdateActivity", "Error update game");
@@ -171,10 +172,8 @@ public class UpdateActivity extends AppCompatActivity {
                         new AlertDialog.Builder(UpdateActivity.this)
                                 .setTitle("Update:")
                                 .setMessage("Failed to download the update!")
-                                .setPositiveButton("Ok", (dialog, which) -> {
-                                    startActivity(new Intent(UpdateActivity.this, SplashActivity.class));
-                                    finish();
-                                }).setCancelable(false).show();
+                                .setPositiveButton("Ok", (dialog, which) -> finish())
+                                .setCancelable(false).show();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -230,18 +229,9 @@ public class UpdateActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        quitApp();
-    }
-
-    private long quit_time = 0;
-
-    public void quitApp() {
-        if ((System.currentTimeMillis() - quit_time) > 2000) {
-            Toast.makeText(this, "Press again to quit.", Toast.LENGTH_LONG).show();
-            quit_time = System.currentTimeMillis();
-        } else {
-            finish();
-        }
+        // UpdateActivity is now opened from MainActivity (not forced on launch from
+        // SplashActivity), so pressing back should just return there - not quit the app.
+        finish();
     }
 
     private void hideSystemUI() {

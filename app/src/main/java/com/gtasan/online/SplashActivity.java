@@ -1,18 +1,11 @@
 package com.gtasan.online;
 
 import android.Manifest;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
-import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
-import android.os.Message;
-import android.os.Messenger;
-import android.os.RemoteException;
 import android.os.StrictMode;
 import android.util.Log;
 import android.view.View;
@@ -23,7 +16,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.applovin.sdk.AppLovinSdk;
-import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textview.MaterialTextView;
 import com.joom.paranoid.Obfuscate;
 
@@ -45,27 +37,9 @@ public class SplashActivity extends AppCompatActivity implements GLSurfaceView.R
             Manifest.permission.RECORD_AUDIO
     };
 
-    public IncomingHandler mInHandler;
-    public Messenger mMessenger;
-    public Messenger mService;
     GLSurfaceView glSurfaceView;
-    MaterialButton btnForceUpdate;
-    View statusPill;
 
     Logcat logcat;
-
-    private final ServiceConnection mConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(@NonNull ComponentName componentName, @NonNull IBinder service) {
-            mService = new Messenger(service);
-            checkUpdate();
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName componentName) {
-            mService = null;
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,14 +67,8 @@ public class SplashActivity extends AppCompatActivity implements GLSurfaceView.R
 
         ((MaterialTextView) findViewById(R.id.ahahaha)).setText(Utils.copyright);
 
-        mInHandler = new IncomingHandler();
-        mMessenger = new Messenger(mInHandler);
-
         glSurfaceView = findViewById(R.id.surface);
         glSurfaceView.setRenderer(this);
-
-        btnForceUpdate = findViewById(R.id.btnForceUpdate);
-        statusPill = findViewById(R.id.statusPill);
 
         Toast.makeText(this, "Nativo SA-MP Mobile v" + BuildConfig.VERSION_NAME, Toast.LENGTH_SHORT).show();
 
@@ -114,10 +82,6 @@ public class SplashActivity extends AppCompatActivity implements GLSurfaceView.R
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (mService != null) {
-            unbindService(mConnection);
-        }
-        dismissDialog();
         //logcat.stop();
     }
 
@@ -142,8 +106,6 @@ public class SplashActivity extends AppCompatActivity implements GLSurfaceView.R
         }
     }
 
-    private AlertDialog filesSelectionDialog;
-
     private void startApp() {
         if (!Utils.isOnline(this)) {
             // dialog
@@ -159,14 +121,12 @@ public class SplashActivity extends AppCompatActivity implements GLSurfaceView.R
 
         // Selecao Lite/Full removida: sempre usamos um unico pacote de dados completo.
         getSharedPreferences("samp_settings", Context.MODE_PRIVATE).edit().putString("files_type", "full").apply();
-        new Handler().postDelayed(() -> bindService(new Intent(this, UpdateService.class), mConnection, Context.BIND_AUTO_CREATE), 2500);
-    }
 
-    private void dismissDialog() {
-        if (filesSelectionDialog != null && filesSelectionDialog.isShowing()) {
-            filesSelectionDialog.dismiss();
-            filesSelectionDialog = null;
-        }
+        // Game file checks and the forced-app-update prompt used to run here (via
+        // UpdateService) before the player could reach the main screen. That's now
+        // handled from MainActivity instead: the player can open the server list
+        // right away, and downloads the game files from there whenever they want.
+        new Handler().postDelayed(this::startMain, 2500);
     }
 
     private void startMain() {
@@ -227,93 +187,6 @@ public class SplashActivity extends AppCompatActivity implements GLSurfaceView.R
     @Override
     public void onDrawFrame(GL10 gl10) {
 
-    }
-
-    public void checkUpdate() {
-        // Log.i("SplashActivity", "checkUpdate");
-
-        Message obtain = Message.obtain(null, 0);
-        obtain.replyTo = mMessenger;
-
-        try {
-            mService.send(obtain);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private class IncomingHandler extends Handler {
-        @Override
-        public void handleMessage(Message message) {
-            int i = message.what;
-            if (i == 4) {
-                UpdateActivity.UpdateStatus updateStatus = UpdateActivity.UpdateStatus.valueOf(message.getData().getString("status", ""));
-                if (updateStatus == UpdateActivity.UpdateStatus.Undefined) {
-                    Message obtain = Message.obtain(null, 5);
-                    obtain.replyTo = mMessenger;
-                    Messenger messenger = mService;
-                    try {
-                        messenger.send(obtain);
-                    } catch (RemoteException e) {
-                        e.printStackTrace();
-                    }
-                } else if (updateStatus == UpdateActivity.UpdateStatus.CheckUpdate) {
-                    Message obtain2 = Message.obtain(null, 4);
-                    obtain2.replyTo = mMessenger;
-                    Messenger messenger = mService;
-                    try {
-                        messenger.send(obtain2);
-                    } catch (RemoteException e2) {
-                        e2.printStackTrace();
-                    }
-                }
-            } else if (i == 5) {
-                UpdateActivity.GameStatus gameStatus = UpdateActivity.GameStatus.valueOf(message.getData().getString("status", ""));
-                Log.i("SplashActivity", "gameStatus = " + gameStatus);
-
-                // Removida a checagem de Utils.appStatus() aqui: era uma segunda chamada de rede
-                // redundante (o update.json ja tinha sido lido no checkUpdate()) e travava o app
-                // com "App server is down" sempre que essa segunda chamada falhava por qualquer
-                // motivo, mesmo com o resto funcionando.
-                {
-                    if (Utils.ENFORCE_APP_UPDATE && gameStatus == UpdateActivity.GameStatus.GameUpdateRequired && !Utils.isTester(SplashActivity.this)) {
-                        try {
-                            new AlertDialog.Builder(SplashActivity.this)
-                                    .setTitle("Atualização:").setMessage("Atualização do aplicativo necessária! Toque em 'Atualizar' e baixe a versão mais recente pelo site.")
-                                    .setPositiveButton("Atualizar", (dialog, which) -> {
-                                        /*Intent intent = new Intent(SplashActivity.this, UpdateActivity.class);
-                                        intent.putExtra("mode", UpdateActivity.UpdateMode.GameUpdate.name());
-                                        startActivity(intent);
-                                        finish();*/
-                                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(Utils.web));
-                                        startActivity(intent);
-                                    }).setCancelable(false).show();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    } else if (gameStatus == UpdateActivity.GameStatus.GameFilesUpdateRequired) {
-                        // Sem opcao de recusar: o botao fica visivel ate o usuario tocar nele
-                        // e atualizar. So depois disso o app segue para o painel principal.
-                        // Esconde o pill de "verificando atualizacoes" pra nao ficar duplicado
-                        // atras do botao.
-                        try {
-                            statusPill.setVisibility(View.GONE);
-                            btnForceUpdate.setVisibility(View.VISIBLE);
-                            btnForceUpdate.setOnClickListener(v -> {
-                                Intent intent = new Intent(SplashActivity.this, UpdateActivity.class);
-                                intent.putExtra("mode", UpdateActivity.UpdateMode.GameUpdate.name());
-                                startActivity(intent);
-                                finish();
-                            });
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        startMain();
-                    }
-                }
-            }
-        }
     }
 
     @Override

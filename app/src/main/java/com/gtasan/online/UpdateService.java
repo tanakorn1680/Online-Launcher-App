@@ -175,8 +175,15 @@ public class UpdateService extends Service {
                             mGameStatus = UpdateActivity.GameStatus.GameUpdateRequired;
                         } else if (isGameFilesUpdateExists()) {
                             mGameStatus = UpdateActivity.GameStatus.GameFilesUpdateRequired;
+                            getSharedPreferences("samp_settings", Context.MODE_PRIVATE).edit()
+                                    .putBoolean("game_files_ready", false).apply();
                         } else {
                             mGameStatus = UpdateActivity.GameStatus.Updated;
+                            // Every game file/archive is present and the right size: remember this
+                            // so MainActivity can show the Connect button without re-checking
+                            // against the server every time it's opened.
+                            getSharedPreferences("samp_settings", Context.MODE_PRIVATE).edit()
+                                    .putBoolean("game_files_ready", true).apply();
                         }
 
                         setUpdateStatus(UpdateActivity.UpdateStatus.Undefined);
