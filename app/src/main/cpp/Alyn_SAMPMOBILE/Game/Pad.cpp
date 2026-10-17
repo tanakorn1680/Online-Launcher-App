@@ -378,6 +378,73 @@ DECL_HOOK(uint32_t, CPad_ExitVehicleJustDown, uintptr_t _this, int a2, uintptr_t
 	return dwResult;
 }
 
+#if FEATURE_TASK_GUARD
+// ---- Guard against dangling CTask pointers --------------------------------------------
+// The ped task manager can end up holding a task whose slot in the task pool was already
+// freed. Crashes seen in the logs: CTaskManager::SetTask / SetNextSubTask calling a virtual
+// on such a task ("deleted virtual" abort) or ProcessPed with a null ped. Detect those
+// cases, log them and drop the stale pointer instead of letting the game crash.
+static bool IsFreedTask(sa::CTask* task)
+{
+	if (task == nullptr) {
+		return false;
+	}
+
+	typedef sa::CPool<char> TaskPool;
+	TaskPool* pool = *g_saSym->GetSymbol<TaskPool**>("_ZN6CPools12ms_pTaskPoolE");
+	if (pool == nullptr || pool->m_aStorage == nullptr || pool->m_aFlags == nullptr) {
+		return false;
+	}
+
+	const uintptr_t entrySize = VER_x32 ? 128 : 168;
+	const uintptr_t base = (uintptr_t) pool->m_aStorage;
+	const uintptr_t addr = (uintptr_t) task;
+	if (addr < base || addr >= base + (uintptr_t) pool->m_nSize * entrySize) {
+		return false; // not allocated from the task pool
+	}
+
+	return pool->m_aFlags[(addr - base) / entrySize].bEmpty;
+}
+
+DECL_HOOK(uintptr_t, CTaskManager_SetTask, sa::CTaskManager* _this, sa::CTask* task, int slot, bool flag)
+{
+	if (_this != nullptr && slot >= 0 && slot < sa::TASK_PRIMARY_MAX) {
+		sa::CTask* old = _this->m_aPrimaryTasks[slot];
+		if (IsFreedTask(old)) {
+			spdlog::warn("CTaskManager::SetTask: dropping freed task {:#x} in slot {}", (uintptr_t) old, slot);
+			_this->m_aPrimaryTasks[slot] = nullptr;
+		}
+	}
+
+	return CTaskManager_SetTask(_this, task, slot, flag);
+}
+
+DECL_HOOK(uintptr_t, CTaskManager_SetNextSubTask, sa::CTaskManager* _this, sa::CTask* task)
+{
+	if (_this != nullptr && task != nullptr) {
+		bool bad = (_this->m_pPed == nullptr);
+
+		// every task in the parent chain must still be alive
+		sa::CTask* t = task;
+		for (int depth = 0; t != nullptr && !bad && depth < 16; depth++) {
+			if (IsFreedTask(t)) {
+				bad = true;
+			}
+			else {
+				t = t->m_pParentTask;
+			}
+		}
+
+		if (bad) {
+			spdlog::warn("CTaskManager::SetNextSubTask: skipped (freed task or null ped), task {:#x}", (uintptr_t) task);
+			return 0;
+		}
+	}
+
+	return CTaskManager_SetNextSubTask(_this, task);
+}
+#endif
+
 DECL_HOOK(int, CPad_GetTurretLeft, uintptr_t _this)
 {
 	if (*pbyteCurrentPlayer) {
@@ -1818,6 +1885,10 @@ void Hooks::installPadHooks()
 
 	// playerped
 	HOOK("_ZN10CPlayerPed14ProcessControlEv", CPed_ProcessControl);
+#if FEATURE_TASK_GUARD
+	HOOK("_ZN12CTaskManager7SetTaskEP5CTaskib", CTaskManager_SetTask);
+	HOOK("_ZN12CTaskManager14SetNextSubTaskEP5CTask", CTaskManager_SetNextSubTask);
+#endif
 
 	// vehicles
 	HOOK("_ZN11CAutomobile14ProcessControlEv", CAutomobile_ProcessControl);
